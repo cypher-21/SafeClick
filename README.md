@@ -21,3 +21,7 @@ SafeClick is a smart browser extension that protects you from phishing and unsaf
 - Add trusted sites to whitelist to bypass warnings
 - Remove sites from whitelist if needed
 - Whitelist is stored locally for privacy
+
+© 2025 SafeClick. All Rights Reserved.
+SafeClick, including its name, logo, code, design, and functionality, is the intellectual property of Parosh Biswas. Unauthorized reproduction, distribution, modification, or use of this software, in whole or in part, is strictly prohibited without prior written consent.
+SafeClick is free to download from the official Chrome Web Store for personal use. However, downloading the source code, redistributing, modifying, or pretending it as your own project is strictly prohibited. Any misuse may result in legal consequences.
