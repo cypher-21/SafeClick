@@ -14,10 +14,6 @@ SafeClick is designed to analyze websites locally in your browser to help you av
 - We do not transmit page contents, form data, passwords, or browsing history to our servers (there are none)
 - All analysis is performed locally in your browser
 
-## Recent changes (v1.0.3)
-- Removed the "Why this score?" breakdown section from the popup UI.
-- Stopped generating and sending breakdown data; only the final score, verdict, reasons, and essential details are shown.
-
 ## Permissions justification
 - "activeTab", "tabs": Used to analyze the current page and display results
 - "storage": Store local settings and security history on your device
