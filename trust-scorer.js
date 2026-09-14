@@ -34,8 +34,8 @@ class TrustScorer {
     this.brandNames = this.config.Security.brandNames;
     this.urlShorteners = this.config.Security.urlShorteners || ['bit.ly', 'tinyurl.com', 't.co', 'goo.gl', 'ow.ly', 'short.link', 'tiny.cc'];
     this.socialEngineeringKeywords = this.config.Security.socialEngineeringKeywords || [
-      'urgent', 'immediate action', 'verify now', 'suspended account', 'click here now',
-      'limited time', 'act fast', 'expires today', 'confirm identity', 'update payment'
+      'urgent action required', 'immediate action required', 'verify your account now', 'suspended account', 'click here immediately to verify',
+      'act fast to prevent suspension', 'confirm identity immediately', 'update payment method now'
     ];
     this.suspiciousSubdomainPatterns = this.config.Security.suspiciousSubdomainPatterns || [
       /^(www\d+|secure\d+|login\d+|auth\d+|verify\d+)\./,
@@ -1216,42 +1216,42 @@ class TrustScorer {
   detectSocialEngineering(content) {
     try {
       let score = this.scoringFactors.socialEngineering.weight;
-      const lowerContent = content.toLowerCase();
+      const lowerContent = (content || '').toLowerCase();
       const detectedTactics = [];
 
-      // Check for urgency tactics
-      const urgencyMatches = this.socialEngineeringKeywords.filter(keyword =>
+      // Check for urgency tactics with multi-word phishing phrases
+      const urgencyMatches = (this.socialEngineeringKeywords || []).filter(keyword =>
         lowerContent.includes(keyword.toLowerCase())
       );
 
-      if (urgencyMatches.length > 3) {
+      if (urgencyMatches.length >= 2) {
         score -= 4;
         detectedTactics.push('urgency pressure');
-      } else if (urgencyMatches.length > 1) {
+      } else if (urgencyMatches.length === 1) {
         score -= 2;
         detectedTactics.push('some urgency language');
       }
 
       // Check for authority impersonation
-      const authorityTerms = ['official', 'government', 'federal', 'department', 'agency', 'bureau'];
+      const authorityTerms = ['official security notice', 'federal tax alert', 'government agency notice', 'fbi cyber division alert', 'internal revenue service alert'];
       const authorityCount = authorityTerms.filter(term => lowerContent.includes(term)).length;
-      if (authorityCount > 2) {
+      if (authorityCount >= 1) {
         score -= 3;
         detectedTactics.push('authority impersonation');
       }
 
       // Check for fear tactics
-      const fearTerms = ['suspended', 'blocked', 'terminated', 'cancelled', 'frozen', 'restricted'];
+      const fearTerms = ['account is suspended', 'account has been suspended', 'account will be terminated', 'funds have been frozen', 'account permanently restricted'];
       const fearCount = fearTerms.filter(term => lowerContent.includes(term)).length;
-      if (fearCount > 2) {
+      if (fearCount >= 1) {
         score -= 3;
         detectedTactics.push('fear tactics');
       }
 
       // Check for scarcity tactics
-      const scarcityTerms = ['limited time', 'expires', 'only', 'last chance', 'final notice'];
+      const scarcityTerms = ['last chance to verify', 'final notice before suspension', 'expires in 10 minutes', 'expires in 15 minutes', 'immediate action required to prevent closure'];
       const scarcityCount = scarcityTerms.filter(term => lowerContent.includes(term)).length;
-      if (scarcityCount > 1) {
+      if (scarcityCount >= 1) {
         score -= 2;
         detectedTactics.push('scarcity pressure');
       }
@@ -1264,7 +1264,7 @@ class TrustScorer {
         score: Math.max(0, score),
         reason,
         tactics: detectedTactics,
-        urgencyLevel: urgencyMatches.length > 3 ? 'high' : urgencyMatches.length > 1 ? 'medium' : 'low'
+        urgencyLevel: urgencyMatches.length >= 2 ? 'high' : urgencyMatches.length === 1 ? 'medium' : 'low'
       };
     } catch (_) {
       return { score: this.scoringFactors.socialEngineering.weight, reason: 'Social engineering analysis failed', tactics: [] };

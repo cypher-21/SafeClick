@@ -1567,9 +1567,11 @@ class SafeClickPopup {
     if (!this.socialEngineeringAlert) return;
     const domAnalysis = details?.detailedInfo?.domAnalysis || details?.domAnalysis;
     const reasons = this.currentTrustScore?.reasons || [];
-    const hasUrgency = (domAnalysis?.hasUrgencyText) || reasons.some(r => /urgency|panic|coercion/i.test(r));
+    const verdict = this.currentTrustScore?.verdict || 'UNKNOWN';
+    const isThreatVerdict = verdict === 'SUSPICIOUS' || verdict === 'DANGEROUS';
+    const hasUrgency = Boolean(domAnalysis?.hasUrgencyText) || reasons.some(r => /urgency|panic|coercion|social engineering/i.test(r));
 
-    if (hasUrgency) {
+    if (hasUrgency && isThreatVerdict && domAnalysis?.hasUrgencyText) {
       this.socialEngineeringAlert.style.display = 'block';
       if (this.seTacticBadge) {
         this.seTacticBadge.textContent = 'Psychological Pressure';

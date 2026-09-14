@@ -306,24 +306,43 @@ const DOMAnalyzer = (function () {
      * Extract visible urgency snippets for social engineering detection
      * Scans headers, banners, alerts, buttons, and callout text
      * @param {Document} doc
+     * @param {Object} [context]
      * @returns {string[]}
      */
-    function extractUrgencySnippets(doc) {
+    function extractUrgencySnippets(doc, context = {}) {
         const snippets = [];
         if (!doc) return snippets;
 
+        // Skip urgency scans on pure media / streaming / video platforms where titles like "Food Challenge" or "First fail" exist
+        const pageHost = (typeof window !== 'undefined' && window.location ? window.location.hostname.toLowerCase() : '');
+        const isMediaPlatform = /^(www\.)?(youtube\.com|youtu\.be|vimeo\.com|twitch\.tv|netflix\.com|reddit\.com|wikipedia\.org)$/i.test(pageHost);
+        if (isMediaPlatform) {
+            return snippets;
+        }
+
+        // Strict phishing urgency patterns using word boundaries to prevent false matches (e.g. "first" matching "irs", "sandwich" matching "lock")
         const urgencyPatterns = [
-            /urgent/i, /immediate action/i, /account.*suspend/i, /verify.*now/i,
-            /lock(ed)?/i, /expire[sd]?/i, /unusual activity/i, /within \d+ (minutes|hours)/i,
-            /winner/i, /lottery/i, /congratulations/i, /penalty/i, /security alert/i,
-            /law enforcement/i, /irs/i, /tax refund/i, /crypto reward/i
+            /\b(urgent action required|immediate action required|action required to prevent)\b/i,
+            /\b(account (has been |is )?suspended|verify (your )?account now)\b/i,
+            /\b(account (is |has been )?locked|card (is |has been )?locked)\b/i,
+            /\b(session expired|password expires today|expires within \d+ (minutes|hours))\b/i,
+            /\b(unusual (sign-in|login|activity) detected.{0,30}(verify|unlock))\b/i,
+            /\b(security alert: verify|confirm your identity immediately)\b/i,
+            /\b(claim (your )?(lottery prize|crypto reward|reward money))\b/i,
+            /\b(irs tax refund.{0,30}(claim|enter details|ssn))\b/i,
+            /\b(law enforcement notice: immediate)\b/i
         ];
 
         try {
-            const elements = doc.querySelectorAll('h1, h2, h3, .alert, .banner, .notice, .warning, button, [role="alert"]');
+            // Only inspect headers or alert banners that are NOT part of video, article, or comment feeds
+            const elements = doc.querySelectorAll('.alert, .banner, .notice, .warning, [role="alert"], h1, h2');
             for (const el of elements) {
+                // Skip if inside media/video/comment containers
+                if (el.closest && el.closest('ytd-rich-item-renderer, ytd-video-renderer, ytd-compact-video-renderer, #video-title, article, video, .ytp-chrome-bottom, #comments, .feed-item, .post')) {
+                    continue;
+                }
                 const text = (el.textContent || '').trim().replace(/\s+/g, ' ');
-                if (text.length >= 8 && text.length <= 200) {
+                if (text.length >= 10 && text.length <= 200) {
                     if (urgencyPatterns.some(rx => rx.test(text))) {
                         snippets.push(text);
                         if (snippets.length >= 5) break;
@@ -347,7 +366,7 @@ const DOMAnalyzer = (function () {
         const bibAnalysis = detectBrowserInBrowser(doc);
         const credentialAnalysis = detectCredentialFields(doc);
         const faviconAnalysis = detectFaviconSpoofing(doc, pageUrl);
-        const urgencySnippets = extractUrgencySnippets(doc);
+        const urgencySnippets = extractUrgencySnippets(doc, { credentialAnalysis, formAnalysis, pageUrl });
 
         // Combine all risks
         const allRisks = [

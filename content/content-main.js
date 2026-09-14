@@ -202,19 +202,24 @@
 
   function detectSocialEngineeringAttempts() {
     try {
-      const content = document.body ? document.body.textContent.toLowerCase() : '';
+      if (!currentTrustScore || currentTrustScore.verdict === 'SAFE') return;
+      const content = (document.body ? document.body.innerText || '' : '').slice(0, 5000).toLowerCase();
+      if (!content) return;
+
       const socialTactics = [];
 
-      const urgencyWords = ['urgent', 'immediate', 'expires today', 'act now', 'limited time'];
-      if (urgencyWords.filter(w => content.includes(w)).length > 2) socialTactics.push('urgency pressure');
+      const urgencyWords = [/\b(urgent action required|immediate action required)\b/i, /\b(account (has been|is) suspended)\b/i, /\b(verify (your )?account now)\b/i];
+      if (urgencyWords.filter(rx => rx.test(content)).length > 0) socialTactics.push('urgency pressure');
 
-      const authorityWords = ['government', 'irs', 'fbi', 'police', 'official'];
-      if (authorityWords.filter(w => content.includes(w)).length > 1) socialTactics.push('authority claims');
+      const authorityWords = [/\b(official security notice|irs tax refund|fbi cyber division)\b/i];
+      if (authorityWords.filter(rx => rx.test(content)).length > 0) socialTactics.push('authority claims');
 
-      const fearWords = ['suspended', 'terminated', 'blocked', 'frozen', 'restricted'];
-      if (fearWords.filter(w => content.includes(w)).length > 1) socialTactics.push('fear tactics');
+      const fearWords = [/\b(account (is|has been) permanently blocked|funds (have been|are) frozen)\b/i];
+      if (fearWords.filter(rx => rx.test(content)).length > 0) socialTactics.push('fear tactics');
 
-      if (socialTactics.length > 0 && currentTrustScore?.verdict !== 'SAFE') {
+      // Only warn if genuine phishing tactics exist on a threat verdict with input forms present
+      const hasInputs = Boolean(document.querySelector('input[type="password"], form, input[type="text"]'));
+      if (socialTactics.length > 0 && (currentTrustScore.verdict === 'DANGEROUS' || currentTrustScore.verdict === 'SUSPICIOUS') && hasInputs) {
         SafeClickModalUI.showSocialEngineeringWarning(socialTactics);
       }
     } catch (_) {}

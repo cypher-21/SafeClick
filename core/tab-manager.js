@@ -192,21 +192,20 @@ const TabManager = (function () {
         func: () => {
           try {
             return {
-              text: document.body ? document.body.innerText : '',
-              html: document.documentElement ? document.documentElement.outerHTML : '',
-              forms: Array.from(document.forms).map(form => ({
+              text: document.body ? document.body.innerText.slice(0, 5000) : '',
+              forms: Array.from(document.forms).slice(0, 20).map(form => ({
                 action: form.action,
                 method: form.method,
                 hasPassword: form.querySelector('input[type="password"]') !== null
               })),
-              scripts: Array.from(document.scripts).map(s => s.src).filter(Boolean),
-              links: Array.from(document.links).map(l => l.href).filter(Boolean),
+              scripts: Array.from(document.scripts).slice(0, 50).map(s => s.src).filter(Boolean),
+              links: Array.from(document.links).slice(0, 50).map(l => l.href).filter(Boolean),
               domAnalysis: (typeof window !== 'undefined' && window.DOMAnalyzer && typeof window.DOMAnalyzer.analyze === 'function')
                 ? window.DOMAnalyzer.analyze(document, window.location.href)
                 : null
             };
           } catch (_) {
-            return { text: '', html: '', forms: [], scripts: [], links: [], domAnalysis: null };
+            return { text: '', forms: [], scripts: [], links: [], domAnalysis: null };
           }
         }
       });

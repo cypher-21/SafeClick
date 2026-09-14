@@ -8,7 +8,8 @@
     "test:ml": "node test/evaluation/evaluation.test.js",
     "test:memory": "node test/memory-audit.test.js",
     "test:ai": "node test/ai-advisor.test.js",
-    "test:serp": "node test/serp-enhancer.test.js"
+    "test:serp": "node test/serp-enhancer.test.js",
+    "package": "node scripts/package-webstore.js"
   },
   "keywords": [
     "browser-extension",

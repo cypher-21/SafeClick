@@ -10,8 +10,13 @@
 </p>
 
 <p align="center">
+  <a href="https://chromewebstore.google.com/detail/safeclick-website-trust-s/geambhbmldjldilgfjdepieenlpdlilk"><img src="https://img.shields.io/badge/Available%20on-Chrome%20Web%20Store-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Available on Chrome Web Store" /></a>
+</p>
+
+<p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="Apache 2.0 License"></a>
   <a href="manifest.json"><img src="https://img.shields.io/badge/Manifest-V3-orange.svg" alt="Manifest V3"></a>
+  <a href="https://chromewebstore.google.com/detail/safeclick-website-trust-s/geambhbmldjldilgfjdepieenlpdlilk"><img src="https://img.shields.io/badge/Chrome%20Web%20Store-geambhbmldjldilgfjdepieenlpdlilk-blue?logo=googlechrome&logoColor=white" alt="Chrome Web Store"></a>
   <a href="#security--privacy-philosophy"><img src="https://img.shields.io/badge/Architecture-Local--First-brightgreen.svg" alt="Local First"></a>
   <a href="#security--privacy-philosophy"><img src="https://img.shields.io/badge/Maintainer%20Cost-%240.00-success.svg" alt="Zero Cost"></a>
   <a href="#testing--benchmarks"><img src="https://img.shields.io/badge/Tests-19%2F19%20Passed-brightgreen.svg" alt="Tests 19/19 Passed"></a>
@@ -331,7 +336,18 @@ SafeClick/
 
 ## 🚀 Installation & Quick Start
 
-### For Everyday Users (Load Unpacked):
+### Method 1: Install from Chrome Web Store (Recommended)
+
+Get official releases and automatic background updates directly from Google:
+
+👉 **[Install SafeClick from Chrome Web Store](https://chromewebstore.google.com/detail/safeclick-website-trust-s/geambhbmldjldilgfjdepieenlpdlilk)**
+
+1. Click **Add to Chrome**.
+2. Click the puzzle icon on your browser toolbar and pin the SafeClick shield.
+
+---
+
+### Method 2: Install from Source / Developer Mode (Load Unpacked)
 
 1. **Download or Clone the Repository**:
    ```bash
