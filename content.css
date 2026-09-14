@@ -1,0 +1,592 @@
+/* SafeClick Content Script Styles */
+
+/* Warning Modal */
+#safeclick-warning-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 999999;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.safeclick-modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.safeclick-modal-content {
+  background: rgba(14, 17, 24, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  color: #F1F5F9;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  animation: safeclick-modal-slide-in 0.3s ease-out;
+}
+
+@keyframes safeclick-modal-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.safeclick-modal-header {
+  padding: 20px 24px 16px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.safeclick-modal-icon {
+  font-size: 24px;
+  width: 44px;
+  height: 44px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.safeclick-modal-header h2 {
+  margin: 0;
+  color: #FFFFFF;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.safeclick-modal-body {
+  padding: 20px 24px;
+}
+
+.safeclick-modal-body p {
+  margin: 0 0 16px 0;
+  color: #CBD5E1;
+  line-height: 1.55;
+  font-size: 13.5px;
+}
+
+.safeclick-modal-body ul {
+  margin: 0 0 20px 0;
+  padding-left: 20px;
+  color: #94A3B8;
+}
+
+.safeclick-modal-body li {
+  margin-bottom: 8px;
+  line-height: 1.45;
+  font-size: 13px;
+}
+
+.safeclick-trust-score {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 14px;
+  margin-top: 16px;
+}
+
+.safeclick-trust-score span {
+  display: block;
+  font-weight: 600;
+  color: #F8FAFC;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.safeclick-score-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.safeclick-score-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+  border-radius: inherit;
+}
+
+/* Risk Analysis Section */
+.safeclick-risk-details {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.safeclick-risk-details h4 {
+  margin: 0 0 12px 0;
+  color: #F8FAFC;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.safeclick-risk-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.risk-item {
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.risk-item.high {
+  background: rgba(239, 68, 68, 0.1);
+  color: #FCA5A5;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.risk-item.medium {
+  background: rgba(245, 158, 11, 0.1);
+  color: #FBBF24;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.risk-item.low {
+  background: rgba(16, 185, 129, 0.1);
+  color: #34D399;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.risk-item.safe {
+  background: rgba(16, 185, 129, 0.1);
+  color: #34D399;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.safeclick-modal-footer {
+  padding: 16px 24px 24px 24px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.safeclick-btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex: 1;
+  min-width: 120px;
+}
+
+.safeclick-btn:hover {
+  transform: translateY(-1px);
+}
+
+.safeclick-btn:active {
+  transform: translateY(0);
+}
+
+.safeclick-btn-danger {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #FCA5A5;
+}
+
+.safeclick-btn-danger:hover {
+  background: rgba(239, 68, 68, 0.25);
+  color: #FFFFFF;
+}
+
+.safeclick-btn-secondary {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #E2E8F0;
+}
+
+.safeclick-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #FFFFFF;
+}
+
+.safeclick-btn-primary {
+  background: #F8FAFC;
+  color: #090A0F;
+}
+
+.safeclick-btn-primary:hover {
+  background: #E2E8F0;
+}
+
+/* Notifications (Minimalist Frosted Glass Toast) */
+.safeclick-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: rgba(14, 17, 24, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+  color: #F8FAFC;
+  font-size: 13px;
+  font-weight: 500;
+  z-index: 1000000;
+  animation: safeclick-notification-slide-in 0.3s ease-out;
+  max-width: 320px;
+}
+
+@keyframes safeclick-notification-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.safeclick-notification-success {
+  border-left: 3px solid #10B981;
+}
+
+.safeclick-notification-error {
+  border-left: 3px solid #EF4444;
+}
+
+.safeclick-notification-info {
+  border-left: 3px solid #64748B;
+}
+
+/* Password Field Warnings */
+.safeclick-warning {
+  position: relative;
+}
+
+/* Form Security Warnings */
+.safeclick-form-warning {
+  position: relative;
+}
+
+.safeclick-form-warning-indicator {
+  animation: safeclick-pulse 2s infinite;
+}
+
+@keyframes safeclick-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Enhanced Field Styling */
+.safeclick-warning input[type="password"],
+.safeclick-warning input[name*="password"],
+.safeclick-warning input[name*="passwd"] {
+  background: linear-gradient(45deg, transparent 0%, rgba(239, 68, 68, 0.05) 100%);
+}
+
+.safeclick-warning input[name*="card"],
+.safeclick-warning input[name*="cc"] {
+  background: linear-gradient(45deg, transparent 0%, rgba(245, 158, 11, 0.05) 100%);
+}
+
+/* Tooltip Enhancement */
+.safeclick-warning:hover::before {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f2937;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+  margin-bottom: 8px;
+}
+
+.safeclick-warning:hover::after {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: #1f2937;
+  margin-bottom: 4px;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  .safeclick-modal-content {
+    margin: 10px;
+    max-width: none;
+  }
+  
+  .safeclick-modal-footer {
+    flex-direction: column;
+  }
+  
+  .safeclick-btn {
+    flex: none;
+    width: 100%;
+  }
+  
+  .safeclick-notification {
+    right: 10px;
+    left: 10px;
+    max-width: none;
+  }
+  
+  .safeclick-risk-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .safeclick-modal-content {
+    background: #1f2937;
+    color: #f9fafb;
+  }
+  
+  .safeclick-modal-header {
+    border-bottom-color: #374151;
+  }
+  
+  .safeclick-modal-header h2 {
+    color: #f9fafb;
+  }
+  
+  .safeclick-modal-body p {
+    color: #d1d5db;
+  }
+  
+  .safeclick-modal-body ul {
+    color: #9ca3af;
+  }
+  
+  .safeclick-trust-score {
+    background: #374151;
+  }
+  
+  .safeclick-trust-score span {
+    color: #d1d5db;
+  }
+  
+  .safeclick-score-bar {
+    background: #4b5563;
+  }
+  
+  .safeclick-risk-details {
+    border-top-color: #374151;
+  }
+  
+  .safeclick-risk-details h4 {
+    color: #f9fafb;
+  }
+  
+  .risk-item.high {
+    background: #7f1d1d;
+    color: #fecaca;
+  }
+  
+  .risk-item.medium {
+    background: #78350f;
+    color: #fed7aa;
+  }
+  
+  .risk-item.low,
+  .risk-item.safe {
+    background: #14532d;
+    color: #bbf7d0;
+  }
+  
+  .safeclick-form-warning-indicator {
+    background: #78350f !important;
+    color: #fed7aa !important;
+  }
+}
+
+/* Accessibility Improvements */
+.safeclick-warning:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.safeclick-btn:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .safeclick-modal-content {
+    border: 2px solid #000;
+  }
+  
+  .safeclick-btn {
+    border: 2px solid currentColor;
+  }
+  
+  .risk-item {
+    border: 1px solid currentColor;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .safeclick-modal-content,
+  .safeclick-notification,
+  .safeclick-form-warning-indicator {
+    animation: none;
+  }
+  .safeclick-btn,
+  .safeclick-modal-content,
+  .safeclick-notification,
+  .safeclick-score-fill {
+    transition: none !important;
+  }
+  .safeclick-btn:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+/* SafeClick SERP Enhancer Badges */
+.safeclick-serp-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 3px !important;
+  margin-left: 8px !important;
+  margin-right: 4px !important;
+  padding: 1.5px 6px !important;
+  font-size: 10px !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif !important;
+  font-weight: 700 !important;
+  border-radius: 4px !important;
+  vertical-align: middle !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  line-height: 1.25 !important;
+  transition: all 0.15s ease !important;
+  user-select: none !important;
+  position: relative !important;
+  letter-spacing: 0.03em !important;
+  text-transform: uppercase !important;
+  white-space: nowrap !important;
+  float: none !important;
+  flex-shrink: 0 !important;
+}
+
+.safeclick-serp-badge svg {
+  width: 11px !important;
+  height: 11px !important;
+  flex-shrink: 0 !important;
+}
+
+.safeclick-serp-badge.safe {
+  background: rgba(16, 185, 129, 0.12) !important;
+  color: #10B981 !important;
+  border: 1px solid rgba(16, 185, 129, 0.35) !important;
+}
+
+.safeclick-serp-badge.safe:hover {
+  background: rgba(16, 185, 129, 0.2) !important;
+  border-color: #10B981 !important;
+}
+
+.safeclick-serp-badge.unknown {
+  background: rgba(148, 163, 184, 0.12) !important;
+  color: #94A3B8 !important;
+  border: 1px solid rgba(148, 163, 184, 0.3) !important;
+}
+
+.safeclick-serp-badge.unknown:hover {
+  background: rgba(148, 163, 184, 0.2) !important;
+  border-color: #94A3B8 !important;
+}
+
+.safeclick-serp-badge.suspicious {
+  background: rgba(245, 158, 11, 0.12) !important;
+  color: #F59E0B !important;
+  border: 1px solid rgba(245, 158, 11, 0.35) !important;
+}
+
+.safeclick-serp-badge.suspicious:hover {
+  background: rgba(245, 158, 11, 0.22) !important;
+  border-color: #F59E0B !important;
+}
+
+.safeclick-serp-badge.dangerous {
+  background: rgba(239, 68, 68, 0.14) !important;
+  color: #EF4444 !important;
+  border: 1px solid rgba(239, 68, 68, 0.4) !important;
+  font-weight: 700 !important;
+}
+
+.safeclick-serp-badge.dangerous:hover {
+  background: rgba(239, 68, 68, 0.24) !important;
+  border-color: #EF4444 !important;
+}
+
+.safeclick-serp-tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  right: 0;
+  background: rgba(14, 17, 24, 0.95);
+  color: #F8FAFC;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 500;
+  text-transform: none;
+  white-space: nowrap;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+  z-index: 10000;
+}
+
+.safeclick-serp-badge:hover .safeclick-serp-tooltip {
+  opacity: 1;
+  visibility: visible;
+}

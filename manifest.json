@@ -1,0 +1,95 @@
+{
+  "manifest_version": 3,
+  "name": "SafeClick - Website Trust Scanner",
+  "version": "2.0.0",
+  "description": "Intelligent Browser Extension For Website Trust Scoring, Phishing Detection & Credential Protection",
+  "author": "Parosh",
+  "homepage_url": "https://github.com/cypher-21/SafeClick",
+  "default_locale": "en",
+  "permissions": [
+    "storage",
+    "scripting",
+    "tabs",
+    "alarms",
+    "webRequest",
+    "webNavigation",
+    "unlimitedStorage"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "content/dom-analyzer.js",
+        "content/modal-ui.js",
+        "content/credential-monitor.js",
+        "content/content-main.js"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "run_at": "document_end"
+    },
+    {
+      "matches": [
+        "*://*.google.com/search*",
+        "*://*.google.co.uk/search*",
+        "*://*.google.ca/search*",
+        "*://*.google.de/search*",
+        "*://*.google.fr/search*",
+        "*://*.google.co.in/search*",
+        "*://*.google.com.au/search*",
+        "*://*.bing.com/search*",
+        "*://duckduckgo.com/*"
+      ],
+      "js": [
+        "content/serp-enhancer.js"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "run_at": "document_end"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "SafeClick - Website Trust Scanner",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "interstitial.html",
+        "interstitial.css",
+        "interstitial.js"
+      ],
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ]
+    }
+  ]
+}

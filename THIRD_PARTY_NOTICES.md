@@ -4,7 +4,7 @@ This document lists third‑party materials included with, or referenced by, the
 
 - Project: SafeClick – Website Trust Scanner (`manifest.json` name: "SafeClick - Website Trust Scanner")
 - Homepage: https://github.com/cypher-21/SafeClick
-- License: MIT (see `LICENSE`)
+- License: Apache-2.0 (see `LICENSE`)
 
 ## Included/Referenced Data Sources
 

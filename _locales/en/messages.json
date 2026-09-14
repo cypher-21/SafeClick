@@ -1,0 +1,15 @@
+{
+  "welcomeTitle": { "message": "Welcome to SafeClick" },
+  "subtitle": { "message": "For the best experience, please pin the SafeClick extension to your toolbar." },
+  "step1": { "message": "Click the puzzle icon (Extensions) in the Chrome toolbar." },
+  "step2": { "message": "Find <strong>SafeClick - Website Trust Scanner</strong>." },
+  "step3": { "message": "Click the pin icon to keep SafeClick visible." },
+  "checkButton": { "message": "I pinned it — Check" },
+  "dontShow": { "message": "Don't show this again" },
+  "openPopupLink": { "message": "Open popup" },
+  "privacyPolicyLink": { "message": "Privacy Policy" },
+  "statusChecking": { "message": "Checking pin status..." },
+  "statusPinned": { "message": "Great! SafeClick is pinned to your toolbar." },
+  "statusNotPinned": { "message": "Not pinned yet. Please open the Extensions (puzzle) menu and click the pin next to SafeClick." },
+  "statusError": { "message": "Error contacting extension. Please try again." }
+}

@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+*.bak
+
+# Environment & API keys
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+
+# Editor directories and files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Build and Packaged Extension Archives
+dist/
+build/
+*.zip
+*.crx
+scratch/

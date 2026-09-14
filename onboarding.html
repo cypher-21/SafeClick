@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-i18n="welcomeTitle">Welcome to SafeClick</title>
+  <link rel="stylesheet" href="onboarding.css" />
+</head>
+<body>
+  <div class="ob-wrap">
+    <div class="ob-card">
+      <div class="ob-header">
+        <img src="icons/icon48.png" alt="SafeClick" />
+        <h1 data-i18n="welcomeTitle">Welcome to SafeClick</h1>
+      </div>
+      <p class="ob-sub" data-i18n="subtitle">For the best experience, please pin the SafeClick extension to your toolbar.</p>
+
+      <div class="ob-steps">
+        <div class="ob-step">
+          <span class="ob-step-num">1</span>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M12 6a2 2 0 1 1 4 0v1h1a2 2 0 0 1 2 2v2h-1a2 2 0 1 0 0 4h1v2a2 2 0 0 1-2 2h-2v-1a2 2 0 1 0-4 0v1H8a2 2 0 0 1-2-2v-2h1a2 2 0 1 0 0-4H6V9a2 2 0 0 1 2-2h2V6z" stroke="#9fb2d1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div class="ob-step-text" data-i18n="step1">Click the Puzzle icon (Extensions) in the Chrome toolbar.</div>
+        </div>
+        <div class="ob-step">
+          <span class="ob-step-num">2</span>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M5 12h14M5 12l4 4M5 12l4-4" stroke="#9fb2d1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div class="ob-step-text" data-i18n="step2">Find <strong>SafeClick - Website Trust Scanner</strong>.</div>
+        </div>
+        <div class="ob-step">
+          <span class="ob-step-num">3</span>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M8 6h8l-2 3H10L8 6z" stroke="#9fb2d1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M10 9h4v3l2 2H8l2-2V9z" stroke="#9fb2d1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 14v4" stroke="#9fb2d1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div class="ob-step-text" data-i18n="step3">Click the Pin icon to keep SafeClick visible.</div>
+        </div>
+      </div>
+
+      <!-- Actions and status removed to keep onboarding purely instructional -->
+
+      <div class="ob-footer">
+        <a id="privacy-link-ob" href="https://github.com/cypher-21/SafeClick/blob/main/PRIVACY.md" target="_blank" rel="noopener noreferrer" data-i18n="privacyPolicyLink">Privacy Policy</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="onboarding.js"></script>
+</body>
+</html>

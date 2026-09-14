@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SafeClick - Website Trust Scanner</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+
+<body class="dark-mode">
+  <div class="popup-container">
+    <!-- Header -->
+    <div class="popup-header">
+      <div class="logo">
+        <div class="logo-icon" aria-hidden="true">
+          <img src="icons/icon128.png" alt="SafeClick" />
+        </div>
+        <h1>SafeClick</h1>
+      </div>
+      <div class="status-indicator" id="status-indicator">
+        <span class="status-icon" id="status-icon"></span>
+        <span class="status-text" id="status-text">Analyzing...</span>
+      </div>
+      <div id="warning-badge"
+        style="display:none; margin-left:8px; padding:3px 8px; border-radius:999px; font-size:10.5px; font-weight:600; background:rgba(245,158,11,0.12); color:#FBBF24; border:1px solid rgba(245,158,11,0.3);">
+        Warning shown
+      </div>
+    </div>
+
+    <!-- Top Navigation Bar -->
+    <div class="nav-tabs" role="tablist">
+      <button class="nav-tab active" id="main-tab" role="tab" aria-selected="true" aria-controls="main-content" title="Dashboard Overview">
+        <span class="tab-ico" aria-hidden="true">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+        </span>
+        <span class="tab-label">Overview</span>
+      </button>
+      <button class="nav-tab" id="ai-tab" role="tab" aria-selected="false" aria-controls="ai-content" title="SafeClick AI Security Advisor">
+        <span class="tab-ico" aria-hidden="true">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          </svg>
+        </span>
+        <span class="tab-label">Ask AI</span>
+      </button>
+      <button class="nav-tab" id="redirections-tab" role="tab" aria-selected="false" aria-controls="redirections-content" title="Domain Allowlist">
+        <span class="tab-ico" aria-hidden="true">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          </svg>
+        </span>
+        <span class="tab-label">Allowlist</span>
+      </button>
+      <button class="nav-tab" id="blocked-tab" role="tab" aria-selected="false" aria-controls="blocked-content" title="Blocked Websites">
+        <span class="tab-ico" aria-hidden="true">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+          </svg>
+        </span>
+        <span class="tab-label">Blocked</span>
+      </button>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="popup-content">
+      <!-- Loading State -->
+      <div class="loading-section" id="loading-section">
+        <div class="loading-spinner"></div>
+        <p>Analyzing website security...</p>
+      </div>
+
+      <!-- Error State -->
+      <div class="error-section" id="error-section" style="display: none;">
+        <div class="error-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="15" y1="9" x2="9" y2="15"></line>
+            <line x1="9" y1="9" x2="15" y2="15"></line>
+          </svg>
+        </div>
+        <p id="error-message">Unable to analyze this page</p>
+      </div>
+
+      <!-- ================================================================= -->
+      <!-- TAB 1: OVERVIEW DASHBOARD                                         -->
+      <!-- ================================================================= -->
+      <div class="tab-content active" id="main-content" role="tabpanel" aria-labelledby="main-tab">
+        <!-- Trust Score Display -->
+        <div class="trust-score-section" id="trust-score-section" style="display: none;">
+          <div class="score-header">
+            <div class="verdict-display">
+              <span class="verdict-icon" id="verdict-icon"></span>
+              <span class="verdict-text" id="verdict-text">Safe</span>
+            </div>
+            <div class="score-number" id="score-number">85</div>
+          </div>
+
+          <div class="score-bar-container">
+            <div class="score-bar">
+              <div class="score-fill" id="score-fill"></div>
+            </div>
+            <div class="score-meta">
+              <div class="score-label">Trust Score: <span id="score-text">85/100</span></div>
+              <div class="scan-time" id="scan-time">Scanned just now</div>
+            </div>
+          </div>
+
+          <div class="score-divider" role="separator" aria-hidden="true"></div>
+
+          <div class="domain-info">
+            <div class="domain-row">
+              <div class="domain-name" id="domain-name">example.com</div>
+              <button class="mini-btn copy-domain" id="copy-domain-btn" title="Copy domain" aria-label="Copy domain"
+                type="button">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4-Pillar Security Inspection (Clean Single-Line Rows) -->
+        <div class="inspection-matrix-section" id="info-section">
+          <div class="matrix-list">
+            <div class="matrix-row" id="card-transport">
+              <span class="matrix-row-title">Transport Security</span>
+              <span class="matrix-row-detail" id="transport-detail" style="display: none;">HTTPS Enforced</span>
+              <span class="matrix-status status-safe" id="transport-status">TLS Secure</span>
+            </div>
+            <div class="matrix-row" id="card-intel">
+              <span class="matrix-row-title">Threat Intelligence</span>
+              <span class="matrix-row-detail" id="intel-detail" style="display: none;">0 matches (URLhaus/OpenPhish)</span>
+              <span class="matrix-status status-safe" id="intel-status">Clean</span>
+            </div>
+            <div class="matrix-row" id="card-identity">
+              <span class="matrix-row-title">Domain Integrity</span>
+              <span class="matrix-row-detail" id="identity-detail" style="display: none;">Established platform domain</span>
+              <span class="matrix-status status-safe" id="identity-status">Verified</span>
+            </div>
+            <div class="matrix-row" id="card-ml">
+              <span class="matrix-row-title">On-Device ML</span>
+              <span class="matrix-row-detail" id="ml-detail" style="display: none;">High heuristic confidence</span>
+              <span class="matrix-status status-safe" id="ml-status">Benign</span>
+            </div>
+          </div>
+          <!-- Hidden compatibility containers for legacy bindings -->
+          <div style="display: none;">
+            <p id="pt-status">Clean</p>
+            <div id="redirects-card"><p id="redirects-summary">None</p></div>
+            <div id="repdb-card"><p id="repdb-status">Synced</p><span id="repdb-count">0</span><span id="repdb-updated"></span></div>
+          </div>
+        </div>
+
+        <!-- Advisory Analysis (Triggered on Suspicious Verdicts) -->
+        <div class="ai-advisory-section" id="ai-advisory-section" style="display: none;">
+          <div class="advisory-header">
+            <div class="advisory-title-wrap">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+              </svg>
+              <span class="advisory-title">Security Advisory</span>
+              <span class="advisory-badge" id="ai-provider-badge">Local Model</span>
+            </div>
+          </div>
+          <div class="advisory-body">
+            <p id="ai-opinion-text" class="advisory-text"></p>
+            <div class="advisory-recommendation-row">
+              <span class="rec-label">Recommendation:</span>
+              <span id="ai-recommendation-text" class="rec-value"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Social Engineering Urgency Alert (DOM/AI detected psychological pressure) -->
+        <div class="social-engineering-alert" id="social-engineering-alert" style="display: none;">
+          <div class="se-header">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #EF4444;">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span class="se-title">Psychological Urgency Detected</span>
+            <span class="se-badge" id="se-tactic-badge">Coercion</span>
+          </div>
+          <p class="se-text" id="se-detail-text">This page uses artificial pressure or panic language to manipulate user actions.</p>
+        </div>
+
+        <!-- Action Buttons (Side-by-Side Clean Grid) -->
+        <div class="actions-section">
+          <button class="action-btn primary" id="rescan-btn">
+            <span class="btn-ico" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+              </svg>
+            </span>
+            <span class="btn-label">Re-Scan Site</span>
+          </button>
+          <button class="action-btn secondary" id="whitelist-btn" style="display: none;">
+            <span class="btn-ico" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                <polyline points="9 12 11 14 15 10"></polyline>
+              </svg>
+            </span>
+            <span class="btn-label">Add to Allowlist</span>
+          </button>
+          <button class="action-btn secondary" id="remove-whitelist-btn" style="display: none;">
+            <span class="btn-ico" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                <line x1="8" y1="12" x2="16" y2="12"></line>
+              </svg>
+            </span>
+            <span class="btn-label">Remove from Allowlist</span>
+          </button>
+          <button class="action-btn secondary" id="vt-btn" title="Open 1-click domain scan on VirusTotal">
+            <span class="btn-ico" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </span>
+            <span class="btn-label">VirusTotal Scan</span>
+          </button>
+        </div>
+
+        <!-- Quick AI Consultation Banner -->
+        <div class="ai-quick-banner" id="ai-quick-banner">
+          <div class="ai-quick-info">
+            <span class="ai-quick-title">Ask SafeClick AI</span>
+            <span class="ai-quick-desc">Analyze login safety, risk factors, or suspicious indicators</span>
+          </div>
+          <button class="ai-quick-btn" id="open-ai-tab-btn" type="button">Open AI Assistant &rarr;</button>
+        </div>
+
+        <!-- Reasons List (Security Audit Trail) -->
+        <div class="reasons-section" id="reasons-section" style="display: none;">
+          <div class="section-header-row">
+            <h3>Security Audit Log</h3>
+            <button class="export-brief-btn" id="export-ioc-btn" title="Export structured security telemetry report">Export Brief</button>
+          </div>
+          <ul class="reasons-list" id="reasons-list">
+            <!-- Reasons will be populated here -->
+          </ul>
+        </div>
+      </div>
+
+      <!-- ================================================================= -->
+      <!-- TAB 2: SAFECLICK AI ASSISTANT (Dedicated Spacious View)           -->
+      <!-- ================================================================= -->
+      <div class="tab-content" id="ai-content" role="tabpanel" aria-labelledby="ai-tab">
+        <div class="ask-ai-section" id="ask-ai-section">
+          <div class="ask-ai-header">
+            <div class="ask-ai-title-wrap">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #60A5FA;">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              </svg>
+              <span class="ask-ai-title">SafeClick AI Assistant</span>
+            </div>
+            <span class="ask-ai-pill">Zero-Trust Intelligence</span>
+          </div>
+          <p class="ask-ai-subtitle">Ask questions about this webpage to understand phishing risks, credential safety, or technical security telemetry.</p>
+          
+          <!-- Full Page Security Audit Hero Action Card -->
+          <div class="ai-audit-action-card">
+            <div class="ai-audit-card-top">
+              <div class="ai-audit-card-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                  <polyline points="9 12 11 14 15 10"></polyline>
+                </svg>
+              </div>
+              <div class="ai-audit-card-text">
+                <div class="ai-audit-card-title-row">
+                  <span class="ai-audit-card-title">Full Page Security Audit</span>
+                  <span class="ai-audit-badge">Complete Report</span>
+                </div>
+                <p class="ai-audit-card-desc">Deep-scan DOM forms, SSL transport, domain integrity, and live feeds into a compact security report.</p>
+              </div>
+            </div>
+            <button class="audit-run-btn" id="ai-full-audit-btn" type="button">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+              <span>Run Full Page Security Audit</span>
+            </button>
+          </div>
+
+          <!-- Quick Prompt Chips -->
+          <div class="quick-chips">
+            <button class="ai-chip chip-highlight" data-query="Perform a full page security audit of this website and give me a complete breakdown report.">Full Page Report</button>
+            <button class="ai-chip" data-query="Is it safe to enter my credentials or password here?">Safe to login?</button>
+            <button class="ai-chip" data-query="Explain why this website was flagged or given this score.">Why this score?</button>
+            <button class="ai-chip" data-query="What risks should I be aware of on this domain?">What are the risks?</button>
+            <button class="ai-chip" data-query="Analyze the SSL certificate and technical security indicators.">Analyze SSL &amp; Tech</button>
+          </div>
+
+          <!-- Chat Input Row (Spacious & Accessible) -->
+          <div class="ai-input-row">
+            <input type="text" id="ai-chat-input" placeholder="Ask a security question about this page..." />
+            <button id="ai-chat-send" title="Send question" type="button">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </div>
+
+          <!-- AI Response Bubble -->
+          <div class="ai-chat-response" id="ai-chat-response" style="display: none;">
+            <div class="ai-chat-response-header">
+              <span class="ai-chat-resp-source" id="ai-chat-source">SafeClick AI</span>
+              <button class="mini-copy-btn" id="ai-chat-copy-btn" title="Copy response" type="button">Copy</button>
+            </div>
+            <p class="ai-chat-response-text" id="ai-chat-text"></p>
+          </div>
+
+          <!-- Incident Brief Action Row -->
+          <div class="ai-ioc-action-row">
+            <div class="ioc-desc-wrap">
+              <span class="ioc-desc-title">Security Incident Brief</span>
+              <span class="ioc-desc-text">Generate a structured Markdown brief with all IoCs and security evidence.</span>
+            </div>
+            <button class="export-brief-btn" id="export-ioc-ai-btn" type="button">Copy Report</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================================================================= -->
+      <!-- TAB 3: ALLOWLIST VIEW                                             -->
+      <!-- ================================================================= -->
+      <div class="tab-content" id="redirections-content" role="tabpanel" aria-labelledby="redirections-tab">
+        <div class="list-manager-section">
+          <div class="list-manager-header">
+            <div class="list-manager-title-wrap">
+              <span class="list-manager-title">Domain Allowlist</span>
+              <span class="list-counter-badge" id="allowlist-count-badge">0 Domains</span>
+            </div>
+            <p class="section-desc">Domains added here are permanently trusted and bypass security warnings.</p>
+          </div>
+
+          <div class="add-item-bar">
+            <input type="text" id="new-domain-input" placeholder="Enter domain (e.g., example.com)" />
+            <button class="action-btn primary" id="add-domain-btn" type="button">Add Domain</button>
+          </div>
+
+          <div class="quick-action-row">
+            <button class="quick-action-btn" id="allow-current-domain-btn" type="button">
+              <span class="quick-ico" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                  <polyline points="9 12 11 14 15 10"></polyline>
+                </svg>
+              </span>
+              <span>Trust Current Domain (<strong id="current-domain-label-allow">...</strong>)</span>
+            </button>
+          </div>
+
+          <div class="list-container">
+            <ul class="redirections-list" id="domain-allowlist">
+              <!-- Domain allowlist will be populated here -->
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================================================================= -->
+      <!-- TAB 4: BLOCKED SITES VIEW                                         -->
+      <!-- ================================================================= -->
+      <div class="tab-content" id="blocked-content" role="tabpanel" aria-labelledby="blocked-tab">
+        <div class="list-manager-section">
+          <div class="list-manager-header">
+            <div class="list-manager-title-wrap">
+              <span class="list-manager-title">Blocked Websites</span>
+              <span class="list-counter-badge danger" id="blocked-count-badge">0 Sites</span>
+            </div>
+            <p class="section-desc">Network navigation to these destinations is strictly intercepted and blocked.</p>
+          </div>
+
+          <div class="add-item-bar">
+            <input type="url" id="blocked-url-input" placeholder="Enter website URL to block..." />
+            <button class="action-btn primary danger-btn" id="block-site-btn" type="button">
+              <span class="btn-ico" aria-hidden="true">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+                </svg>
+              </span>
+              <span class="btn-label">Block Site</span>
+            </button>
+          </div>
+
+          <div class="quick-action-row">
+            <button class="quick-action-btn danger-quick-btn" id="block-current-domain-btn" type="button">
+              <span class="quick-ico" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+                </svg>
+              </span>
+              <span>Block Current Site (<strong id="current-domain-label-block">...</strong>)</span>
+            </button>
+          </div>
+
+          <div class="list-container">
+            <ul class="blocked-list" id="blocked-sites-list">
+              <!-- Blocked sites will be populated here -->
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="popup-footer">
+      <div class="footer-links">
+        <button class="footer-link" id="history-btn">History</button>
+        <button class="footer-link" id="settings-btn">Settings</button>
+        <button class="footer-link" id="help-btn">Help</button>
+        <button class="footer-link" id="about-btn">About</button>
+      </div>
+      <div class="attribution">
+        SafeClick 2.0 • 100% On-Device Protection • Zero Data Collection
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settings-modal" style="display: none;">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="settings-title" tabindex="-1">
+      <div class="modal-header">
+        <h2 id="settings-title">Settings</h2>
+        <button class="modal-close" id="settings-close" aria-label="Close settings">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="setting-item">
+          <label class="setting-label">
+            <input type="checkbox" id="protection-enabled">
+            <span class="checkmark"></span>
+            Enable Redirect Protection
+          </label>
+          <p class="setting-description">When enabled, SafeClick intercepts redirects and shows a warning/interstitial
+            for risky or phishing-listed destinations. Turn off to allow redirects without interruption.</p>
+        </div>
+
+        <div class="setting-item" style="margin-top: 14px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 14px;">
+          <label class="setting-label">
+            <input type="checkbox" id="ai-enabled">
+            <span class="checkmark"></span>
+            Enable AI Second Opinion (Optional)
+          </label>
+          <p class="setting-description">
+            <strong>100% Optional.</strong> SafeClick's security engines, threat intelligence feeds, machine learning, and search badges operate entirely on-device with zero AI dependencies. You do not need any API keys or Chrome flags. When enabled, an AI provides an advisory second opinion strictly on ambiguous (SUSPICIOUS) sites.
+          </p>
+        </div>
+
+        <div class="setting-item" id="ai-settings-block" style="margin-top: 10px;">
+          <label style="font-size: 11px; color: #94A3B8; display: block; margin-bottom: 4px;">Preferred AI Engine</label>
+          <select id="ai-engine-select" style="width: 100%; padding: 7px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; color: #F1F5F9; font-size: 12px;">
+            <option value="chrome-ai">Chrome Built-in AI (Gemini Nano - Local, Private)</option>
+            <option value="byok-gemini">Google Gemini API (Bring Your Own Key)</option>
+          </select>
+
+          <div id="chrome-ai-diag" style="margin-top: 6px; padding: 6px 8px; background: rgba(0,0,0,0.25); border-radius: 6px; font-size: 11px; line-height: 1.4;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span id="chrome-ai-status-indicator" style="width: 7px; height: 7px; border-radius: 50%; background: #64748B; display: inline-block;"></span>
+              <span id="chrome-ai-status-text" style="color: #94A3B8;">Checking Gemini Nano availability...</span>
+            </div>
+          </div>
+
+          <!-- BYOK Gemini API Container -->
+          <div id="gemini-key-container" style="display: none; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+              <label style="font-size: 11px; color: #94A3B8;">Gemini API Key</label>
+              <a href="https://aistudio.google.com/app/apikey" id="get-gemini-key-link" target="_blank" rel="noopener noreferrer" style="font-size: 10.5px; color: #CBD5E1; text-decoration: underline; text-underline-offset: 2px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;">
+                Get Free API Key
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+              </a>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <input type="password" id="gemini-api-key" placeholder="AIzaSy..." style="flex: 1; padding: 6px 8px; background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; color: #fff; font-size: 12px;" />
+              <button type="button" class="mini-btn" id="test-gemini-key-btn" style="padding: 6px 12px; font-size: 11px; background: #F8FAFC; color: #090A0F; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: background 0.15s ease;">Test Key</button>
+            </div>
+            <p id="gemini-key-status" style="font-size: 11px; margin-top: 5px; color: #94A3B8;"></p>
+            <p style="font-size: 10px; color: #64748B; margin-top: 4px; line-height: 1.4;">
+              Need an API key? Get one free at <a href="https://aistudio.google.com/app/apikey" id="get-gemini-key-link2" target="_blank" rel="noopener noreferrer" style="color: #94A3B8; text-decoration: underline;">Google AI Studio</a>. Keys are stored locally on your device.
+            </p>
+
+            <div style="margin-top: 10px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <label style="font-size: 11px; color: #94A3B8;">Gemini Model</label>
+                <button type="button" id="refresh-gemini-models-btn" style="background: none; border: none; color: #CBD5E1; font-size: 10px; cursor: pointer; text-decoration: underline;">Refresh Available Models</button>
+              </div>
+              <select id="gemini-model-select" style="width: 100%; padding: 6px 8px; background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; color: #fff; font-size: 12px;">
+                <option value="gemini-3.8-flash">Gemini 3.8 Flash (Latest - Recommended)</option>
+                <option value="gemini-3.5-flash">Gemini 3.5 Flash (Fast &amp; Efficient)</option>
+                <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite (Low Latency)</option>
+                <option value="gemini-3.1-pro">Gemini 3.1 Pro (Deep Reasoning)</option>
+              </select>
+              <p id="gemini-model-hint" style="font-size: 10px; color: #64748B; margin-top: 4px;">Model auto-selected from your Google Cloud Gemini account.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- History Modal -->
+  <div class="modal-overlay" id="history-modal" style="display: none;">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="history-title" tabindex="-1">
+      <div class="modal-header">
+        <h2 id="history-title">Site History</h2>
+        <button class="modal-close" id="history-close" aria-label="Close history">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="history-controls">
+          <button class="export-btn" id="export-btn">Export CSV</button>
+          <button class="clear-btn" id="clear-history-btn" aria-label="Clear history">Clear History</button>
+        </div>
+        <div class="history-list" id="history-list">
+          <!-- History items will be populated here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- About Modal -->
+  <div class="modal-overlay" id="about-modal" style="display: none;">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="about-title" tabindex="-1">
+      <div class="modal-header">
+        <h2 id="about-title">About SafeClick</h2>
+        <button class="modal-close" id="about-close" aria-label="Close about">×</button>
+      </div>
+      <div class="modal-body">
+        <p><strong>SafeClick</strong> <span id="about-version"></span></p>
+        <p>Developed by <strong>Parosh</strong>. All rights reserved.</p>
+        <div class="about-privacy" tabindex="0" aria-label="Privacy information">
+          <h3>Local-First Architecture</h3>
+          <p>
+            SafeClick 2.0 operates 100% locally on your device. Your browsing data, history, and visited URLs are never collected, logged, or sent to external servers.
+            Threat analysis runs in real time via on-device heuristics, a sub-millisecond local Bloom filter cache, lightweight vector machine learning, and live open feeds (URLhaus, OpenPhish).
+          </p>
+          <p style="margin-top:8px;">
+            <a id="privacy-link" href="#" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+          </p>
+        </div>
+        <p>
+          Project homepage:
+          <a href="https://github.com/cypher-21/SafeClick" target="_blank"
+            rel="noopener noreferrer">github.com/cypher-21/SafeClick</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="popup.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,29 @@
+{
+  "name": "safeclick",
+  "version": "2.0.0",
+  "description": "Intelligent, zero-cost, local-first browser security engine for real-time phishing detection and credential protection.",
+  "main": "background.js",
+  "scripts": {
+    "test": "node test/run-tests.js",
+    "test:ml": "node test/evaluation/evaluation.test.js",
+    "test:memory": "node test/memory-audit.test.js",
+    "test:ai": "node test/ai-advisor.test.js",
+    "test:serp": "node test/serp-enhancer.test.js"
+  },
+  "keywords": [
+    "browser-extension",
+    "security",
+    "phishing-detection",
+    "machine-learning",
+    "threat-intelligence",
+    "privacy",
+    "chrome-extension",
+    "open-source"
+  ],
+  "author": "SafeClick Contributors",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cypher-21/SafeClick.git"
+  }
+}

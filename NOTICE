@@ -1,15 +1,15 @@
 SafeClick - Website Trust Scanner
 
-Copyright (c) 2025 Parosh
+Copyright (c) 2025-2026 Parosh
 
-This product is licensed under the MIT License (see LICENSE).
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
 
 For third-party datasets and attributions, see THIRD_PARTY_NOTICES.md.
 
 Attribution is appreciated in derivative works. If you redistribute or modify this software,
 please keep the following in place:
 
-- The original copyright notice and MIT license text.
+- The original copyright notice and Apache 2.0 license text.
 - Clear attribution to the original author: "Parosh" and the project homepage:
   https://github.com/cypher-21/SafeClick
 - Do not misrepresent modified versions as the original; state significant changes.
