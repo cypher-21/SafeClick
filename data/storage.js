@@ -11,7 +11,7 @@ const SafeClickStorage = (function () {
 
   // Default settings
   const DEFAULT_SETTINGS = {
-    protectionEnabled: true,
+    protectionEnabled: false,
     scoreThreshold: 50,
     passwordStrengthEnabled: true,
     cookieAnalysisEnabled: true,

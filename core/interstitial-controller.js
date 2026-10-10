@@ -191,11 +191,24 @@ const InterstitialController = (function () {
             return;
           }
 
-          const settings = typeof getSettings === 'function' ? getSettings() : { protectionEnabled: true };
-          if (!settings.protectionEnabled) return;
+          let settings = null;
+          if (typeof SafeClickStorage !== 'undefined') {
+            try { settings = await SafeClickStorage.getSettings(); } catch (_) {}
+          }
+          if (!settings && typeof getSettings === 'function') {
+            settings = getSettings();
+          }
+          if (!settings || !settings.protectionEnabled) return;
+
+          // Check if previous page or current navigation originated from a search engine
+          const tab = await chrome.tabs.get(tabId).catch(() => null);
+          const prevUrl = tab?.url || '';
+          const prevHost = normalizeHost(prevUrl);
+          const isFromSearch = (typeof RedirectTracker !== 'undefined' && RedirectTracker.isSearchEngineHost && RedirectTracker.isSearchEngineHost(prevHost)) ||
+            (typeof UrlUtils !== 'undefined' && UrlUtils.isSearchEngineDomain(prevHost));
 
           // Search engine results page or omnibox bypass
-          const isSerp = typeof RedirectTracker !== 'undefined' && (RedirectTracker.isSearchEngineResults(url) || RedirectTracker.shouldBypassForSearch(tabId));
+          const isSerp = isFromSearch || (typeof RedirectTracker !== 'undefined' && (RedirectTracker.isSearchEngineResults(url) || RedirectTracker.shouldBypassForSearch(tabId)));
           if (isSerp) {
             // Guardrail: check if destination itself is known malicious before bypassing
             const isMalicious = (repDB && repDB.loaded && (repDB.isListedExact(url) || (typeof repDB.isListedExactUrl === 'function' && repDB.isListedExactUrl(url)))) ||
@@ -279,11 +292,31 @@ const InterstitialController = (function () {
             return;
           }
 
-          const settings = typeof getSettings === 'function' ? getSettings() : { protectionEnabled: true };
-          if (!settings.protectionEnabled) return;
+          let settings = null;
+          if (typeof SafeClickStorage !== 'undefined') {
+            try { settings = await SafeClickStorage.getSettings(); } catch (_) {}
+          }
+          if (!settings && typeof getSettings === 'function') {
+            settings = getSettings();
+          }
+          if (!settings || !settings.protectionEnabled) return;
 
-          const isSerp = typeof RedirectTracker !== 'undefined' && (RedirectTracker.isSearchEngineResults(url) || RedirectTracker.shouldBypassForSearch(newTabId));
-          if (isSerp) return;
+          let isFromSearch = false;
+          if (typeof details.sourceTabId === 'number' && details.sourceTabId >= 0) {
+            const srcTab = await chrome.tabs.get(details.sourceTabId).catch(() => null);
+            const srcHost = normalizeHost(srcTab?.url || '');
+            if ((typeof RedirectTracker !== 'undefined' && RedirectTracker.isSearchEngineHost && RedirectTracker.isSearchEngineHost(srcHost)) ||
+                (typeof UrlUtils !== 'undefined' && UrlUtils.isSearchEngineDomain(srcHost))) {
+              isFromSearch = true;
+            }
+          }
+
+          const isSerp = isFromSearch || (typeof RedirectTracker !== 'undefined' && (RedirectTracker.isSearchEngineResults(url) || RedirectTracker.shouldBypassForSearch(newTabId)));
+          if (isSerp) {
+            const isMalicious = (repDB && repDB.loaded && (repDB.isListedExact(url) || (typeof repDB.isListedExactUrl === 'function' && repDB.isListedExactUrl(url)))) ||
+              (phishDB && phishDB.loaded && typeof phishDB.isListedExactUrl === 'function' && phishDB.isListedExactUrl(url));
+            if (!isMalicious) return;
+          }
 
           const host = normalizeHost(url);
           if (!host) return;

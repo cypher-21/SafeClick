@@ -174,22 +174,34 @@ class SafeClickPopup {
       return `
       <li class="blocked-item">
         <div class="list-item-meta">
-          <span class="badge-danger-tag">BLOCKED</span>
+          <span class="badge-danger-tag">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:3px;">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+            </svg>
+            BLOCKED
+          </span>
           <span class="blocked-url" title="${this.escapeAttr(url)}">${this.escapeAttr(host)}</span>
         </div>
-        <button class="action-btn-mini danger-mini" data-action="unblock" data-url="${this.escapeAttr(url)}" title="Unblock site">Unblock</button>
+        <button class="action-btn-mini danger-mini" data-action="unblock" data-url="${this.escapeAttr(url)}" title="Unblock site">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:3px;">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+          Unblock
+        </button>
       </li>`;
     }).join('');
     this.blockedListEl.innerHTML = items || `
       <li class="empty-list-card">
-        <div class="empty-list-icon">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <div class="empty-icon-wrap danger-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"></circle>
             <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
           </svg>
         </div>
-        <span class="empty-list-title">No Blocked Websites</span>
-        <span class="empty-list-desc">Add URLs above to restrict access to unsafe or suspicious pages.</span>
+        <span class="empty-title">No Blocked Websites</span>
+        <span class="empty-desc">Add URLs above to restrict access to unsafe or suspicious pages.</span>
       </li>`;
   }
 
@@ -340,22 +352,33 @@ class SafeClickPopup {
     const items = this.domainAllowlist.map(domain => `
       <li class="domain-item">
         <div class="list-item-meta">
-          <span class="badge-success-tag">TRUSTED</span>
-          <span class="domain-name">${domain}</span>
+          <span class="badge-success-tag">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:3px;">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            TRUSTED
+          </span>
+          <span class="domain-name" title="${this.escapeAttr(domain)}">${this.escapeAttr(domain)}</span>
         </div>
-        <button class="action-btn-mini" data-action="remove-domain" data-domain="${this.escapeAttr(domain)}" title="Remove domain">Remove</button>
+        <button class="action-btn-mini remove-mini" data-action="remove-domain" data-domain="${this.escapeAttr(domain)}" title="Remove domain">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:3px;">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+          Remove
+        </button>
       </li>
     `).join('');
     this.domainAllowlistEl.innerHTML = items || `
       <li class="empty-list-card">
-        <div class="empty-list-icon success-icon">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <div class="empty-icon-wrap success-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
             <polyline points="9 12 11 14 15 10"></polyline>
           </svg>
         </div>
-        <span class="empty-list-title">No Custom Allowed Domains</span>
-        <span class="empty-list-desc">Trust internal portals or work sites to bypass safety interstitials.</span>
+        <span class="empty-title">No Custom Allowed Domains</span>
+        <span class="empty-desc">Trust internal portals or work sites to bypass safety interstitials.</span>
       </li>`;
   }
 
@@ -1312,6 +1335,7 @@ class SafeClickPopup {
   }
 
   async showSettings() {
+    await this.loadSettings();
     this.loadSettingsIntoUI();
     this.openModal('settings-modal');
   }
@@ -1383,19 +1407,22 @@ class SafeClickPopup {
     }
   }
 
-  loadSettings() {
-    chrome.storage.local.get(['settings', 'whitelist'], (result) => {
-      this.settings = result.settings || {
-        protectionEnabled: false,
-        aiEnabled: false,
-        aiEngine: 'chrome-ai',
-        geminiApiKey: '',
-        geminiModel: 'gemini-3.8-flash'
-      };
-      this.whitelist = result.whitelist || [];
+  async loadSettings() {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(['settings', 'whitelist'], (result) => {
+        this.settings = Object.assign({
+          protectionEnabled: false,
+          aiEnabled: false,
+          aiEngine: 'chrome-ai',
+          geminiApiKey: '',
+          geminiModel: 'gemini-3.8-flash'
+        }, result.settings || {});
+        this.whitelist = result.whitelist || [];
 
-      // Force dark mode
-      document.body.classList.add('dark-mode');
+        // Force dark mode
+        document.body.classList.add('dark-mode');
+        resolve(this.settings);
+      });
     });
   }
 
@@ -1688,10 +1715,20 @@ class SafeClickPopup {
 
   async updateSetting(key, value) {
     this.settings[key] = value;
-    await chrome.runtime.sendMessage({
-      type: 'UPDATE_SETTINGS',
-      settings: { [key]: value }
-    });
+    // Persist immediately in local storage
+    try {
+      const stored = await new Promise((resolve) => chrome.storage.local.get(['settings'], resolve));
+      const merged = Object.assign({}, stored?.settings || {}, { [key]: value });
+      await new Promise((resolve) => chrome.storage.local.set({ settings: merged }, resolve));
+    } catch (_) {}
+
+    // Synchronize with background orchestrator
+    try {
+      await chrome.runtime.sendMessage({
+        type: 'UPDATE_SETTINGS',
+        settings: { [key]: value }
+      });
+    } catch (_) {}
   }
 
   // Dark mode is always enabled; theme toggle removed

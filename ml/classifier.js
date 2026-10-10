@@ -45,7 +45,7 @@
       2.70,  // 18: isCombosquat
       3.00,  // 19: isSubdomainBrandSpoof
       2.80,  // 20: hasCrossOriginForm
-      2.20,  // 21: hasHiddenIframe
+      0.80,  // 21: hasHiddenIframe
       3.20,  // 22: hasBrowserInBrowser
       1.10   // 23: hasPasswordField
     ]);

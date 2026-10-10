@@ -47,6 +47,21 @@
   }
   const target = qs('target') || '';
   const tabId = parseInt(qs('tabId') || '', 10);
+  const reason = String(qs('reason') || '').toLowerCase();
+
+  // If redirect protection is disabled, bypass interstitial immediately (except for manual user-blocked sites)
+  if (reason !== 'blocked_site' && target) {
+    try {
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        chrome.storage.local.get(['settings'], (res) => {
+          const s = res?.settings;
+          if (!s || s.protectionEnabled !== true) {
+            try { window.location.replace(target); } catch (_) { window.location.href = target; }
+          }
+        });
+      }
+    } catch (_) {}
+  }
 
   const elHost = document.getElementById('targetHost');
   const elUrl = document.getElementById('targetUrl');

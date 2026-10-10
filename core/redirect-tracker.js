@@ -58,10 +58,24 @@ const RedirectTracker = (function () {
     }
   }
 
+  function isSearchEngineHost(host) {
+    if (typeof UrlUtils !== 'undefined' && typeof UrlUtils.isSearchEngineDomain === 'function') {
+      return UrlUtils.isSearchEngineDomain(host);
+    }
+    const h = String(host || '').toLowerCase();
+    if (/^(www\.)?google\.[a-z]{2,3}(\.[a-z]{2})?$/i.test(h)) return true;
+    if (/^(www\.)?(bing|duckduckgo|ecosia|startpage|qwant|baidu|yandex)\.(com|org|ru|net)$/i.test(h)) return true;
+    if (h.includes('search.yahoo.') || h.includes('search.brave.') || h.includes('search.aol.')) return true;
+    return false;
+  }
+
   function hasOpenRedirectParamCrossDomain(url) {
     try {
       const u = new URL(url);
       const curHost = u.hostname.toLowerCase();
+      // Outbound clicks from search engines (like google.com/url?...) are benign navigation, not open redirect exploits
+      if (isSearchEngineHost(curHost)) return false;
+
       const keys = ['url', 'redirect', 'target', 'next', 'dest', 'destination', 'return', 'r'];
       for (const k of keys) {
         const val = u.searchParams.get(k);
@@ -82,10 +96,9 @@ const RedirectTracker = (function () {
     try {
       const u = new URL(url);
       const host = u.hostname.toLowerCase();
-      const searchHosts = ['google.com', 'www.google.com', 'bing.com', 'www.bing.com', 'duckduckgo.com', 'search.yahoo.com'];
-      if (!searchHosts.some(sh => host === sh || host.endsWith('.' + sh))) return false;
-      const q = u.searchParams.get('q') || u.searchParams.get('query') || u.searchParams.get('p');
-      return !!q;
+      if (!isSearchEngineHost(host)) return false;
+      const q = u.searchParams.get('q') || u.searchParams.get('query') || u.searchParams.get('p') || u.searchParams.get('wd');
+      return !!q || u.pathname.startsWith('/search') || u.pathname.startsWith('/url');
     } catch (_) {
       return false;
     }
@@ -115,6 +128,11 @@ const RedirectTracker = (function () {
 
       if (fromHost && toHost && fromHost === toHost) {
         return { allow: true, reason: 'same_host' };
+      }
+
+      // Auto-allow outbound search engine result clicks (e.g. from Google, Bing, DuckDuckGo)
+      if (isSearchEngineHost(fromHost)) {
+        return { allow: true, reason: 'search_engine_navigation' };
       }
 
       if (typeof UrlUtils !== 'undefined') {
@@ -202,7 +220,15 @@ const RedirectTracker = (function () {
       await SafeClickStorage.setPendingRedirects(tabId, list);
     }
 
-    if (!autoAllowed && typeof TabManager !== 'undefined') {
+    let protectionOn = false;
+    if (typeof SafeClickStorage !== 'undefined') {
+      try {
+        const s = await SafeClickStorage.getSettings();
+        protectionOn = !!s?.protectionEnabled;
+      } catch (_) {}
+    }
+
+    if (protectionOn && !autoAllowed && typeof TabManager !== 'undefined') {
       TabManager.pendingDestinations.set(tabId, { url: toUrl, host: destHost, time: Date.now() });
     }
 
@@ -319,6 +345,7 @@ const RedirectTracker = (function () {
     shortPathLooksLikeToken,
     isLikelyShortener,
     hasOpenRedirectParamCrossDomain,
+    isSearchEngineHost,
     isSearchEngineResults,
     markSearchBypass,
     shouldBypassForSearch,

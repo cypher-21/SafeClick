@@ -92,46 +92,171 @@ const DOMAnalyzer = (function () {
     }
 
     /**
-     * Detect hidden iframes that might be used for credential harvesting
+     * Known legitimate domains that legitimately embed hidden, 0x0, or offscreen helper iframes
+     * for captchas, authentication, payments, analytics, tag management, or chat widgets.
+     */
+    const BENIGN_IFRAME_DOMAINS = [
+        // Captcha & Anti-bot
+        'google.com', 'recaptcha.net', 'gstatic.com', 'cloudflare.com', 'challenges.cloudflare.com',
+        'cloudflareinsights.com', 'hcaptcha.com', 'arkoselabs.com', 'arkose.com', 'geetest.com',
+        'perimeterx.net', 'humansecurity.com', 'datadome.co',
+        // SSO, Identity & Major Tech Platforms
+        'accounts.google.com', 'smartlock.google.com', 'appleid.apple.com', 'apple.com',
+        'login.microsoftonline.com', 'live.com', 'microsoft.com', 'facebook.com', 'github.com',
+        'amazon.com', 'okta.com', 'auth0.com',
+        // Analytics, Tracking & Tag Managers
+        'googletagmanager.com', 'google-analytics.com', 'doubleclick.net', 'googleadservices.com',
+        'clarity.ms', 'segment.com', 'segment.io', 'hotjar.com', 'newrelic.com', 'sentry.io',
+        'datadoghq.com', 'mixpanel.com', 'amplitude.com', 'optimizely.com',
+        // Payment Gateways
+        'stripe.com', 'paypal.com', 'braintreegateway.com', 'adyen.com', 'squareup.com',
+        'squareupsandbox.com', 'klarna.com', 'shopify.com',
+        // Customer Support & Chat
+        'intercom.io', 'zendesk.com', 'crisp.chat', 'hubspot.com', 'tidio.co', 'drift.com',
+        'livechatinc.com', 'salesforce.com',
+        // Media & Social Widgets
+        'twitter.com', 'x.com', 'linkedin.com', 'youtube.com', 'vimeo.com',
+        // CDNs & Cloud Infrastructure
+        'cloudflare.net', 'cloudfront.net', 'fastly.net', 'akamaihd.net', 'akamaized.net'
+    ];
+
+    const SUSPICIOUS_IFRAME_TLDS = [
+        '.tk', '.ml', '.ga', '.cf', '.gq', '.top', '.xyz', '.click', '.download',
+        '.link', '.work', '.date', '.racing', '.win', '.stream', '.gdn', '.loan',
+        '.bid', '.buzz', '.vip'
+    ];
+
+    const CREDENTIAL_URL_PATTERNS = [
+        /\/login/i, /\/signin/i, /\/auth/i, /\/credential/i, /\/password/i, /\/verify/i, /\/account/i
+    ];
+
+    /**
+     * Detect hidden iframes that might be used for credential harvesting or clickjacking
      * @param {Document} doc - Document to analyze
+     * @param {string} [pageUrl] - Current page URL
+     * @param {Object} [options] - Configuration options
      * @returns {Object} Analysis result
      */
-    function detectHiddenIframes(doc) {
+    function detectHiddenIframes(doc, pageUrl = '', options = {}) {
         const result = {
             hasHiddenIframes: false,
+            hasClickjackingOverlay: false,
             suspiciousIframes: [],
             risks: []
         };
 
+        if (options && options.iframeScanEnabled === false) {
+            return result;
+        }
+
         try {
+            let pageHost = '';
+            let pageETLD1 = '';
+            try {
+                if (pageUrl) {
+                    pageHost = new URL(pageUrl).hostname.toLowerCase();
+                } else if (typeof window !== 'undefined' && window.location) {
+                    pageHost = window.location.hostname.toLowerCase();
+                }
+                pageETLD1 = typeof UrlUtils !== 'undefined' && typeof UrlUtils.getETLD1FromHost === 'function'
+                    ? UrlUtils.getETLD1FromHost(pageHost)
+                    : pageHost;
+            } catch (_) {}
+
             const iframes = doc.querySelectorAll('iframe');
 
             for (const iframe of iframes) {
-                const src = iframe.getAttribute('src') || '';
-                const style = window.getComputedStyle(iframe);
-                const rect = iframe.getBoundingClientRect();
+                const src = iframe.getAttribute('src') || iframe.src || '';
+                if (!src || src.startsWith('javascript:') || src.startsWith('about:blank') || src.startsWith('data:')) {
+                    continue;
+                }
+
+                let srcUrl;
+                try {
+                    srcUrl = new URL(src, pageUrl || (typeof window !== 'undefined' ? window.location.href : 'http://localhost'));
+                } catch (_) {
+                    continue;
+                }
+
+                if (srcUrl.protocol !== 'http:' && srcUrl.protocol !== 'https:') {
+                    continue;
+                }
+
+                const srcHost = srcUrl.hostname.toLowerCase();
+                const srcETLD1 = typeof UrlUtils !== 'undefined' && typeof UrlUtils.getETLD1FromHost === 'function'
+                    ? UrlUtils.getETLD1FromHost(srcHost)
+                    : srcHost;
+
+                // 1. Same-origin or same eTLD+1 is an internal site component - benign
+                if (pageETLD1 && srcETLD1 && pageETLD1 === srcETLD1) {
+                    continue;
+                }
+
+                // 2. Known benign third-party service (captcha, sso, analytics, payment, etc.)
+                const isBenign = BENIGN_IFRAME_DOMAINS.some(d => srcHost === d || srcHost.endsWith('.' + d));
+                if (isBenign) {
+                    continue;
+                }
+
+                const style = (typeof window !== 'undefined' && window.getComputedStyle) ? window.getComputedStyle(iframe) : {};
+                const rect = iframe.getBoundingClientRect ? iframe.getBoundingClientRect() : { width: 0, height: 0, top: 0, left: 0 };
+                const opacity = parseFloat(style.opacity);
+
+                // Clickjacking Overlay: transparent/invisible iframe covering interactive viewport content
+                const isClickjackingOverlay = (
+                    !Number.isNaN(opacity) && opacity < 0.1 &&
+                    rect.width >= 100 && rect.height >= 100 &&
+                    style.pointerEvents !== 'none' &&
+                    (style.position === 'absolute' || style.position === 'fixed') &&
+                    parseInt(style.zIndex, 10) > 0
+                );
+
+                if (isClickjackingOverlay) {
+                    result.hasClickjackingOverlay = true;
+                    result.hasHiddenIframes = true;
+                    result.suspiciousIframes.push({
+                        src: src,
+                        host: srcHost,
+                        reason: 'Transparent clickjacking overlay'
+                    });
+                    result.risks.push({
+                        type: 'CLICKJACKING_OVERLAY',
+                        severity: 'HIGH',
+                        message: `Transparent clickjacking overlay loading: ${srcHost}`
+                    });
+                    continue;
+                }
 
                 const isHidden = (
                     style.display === 'none' ||
                     style.visibility === 'hidden' ||
-                    parseFloat(style.opacity) === 0 ||
+                    opacity === 0 ||
                     rect.width <= 1 ||
                     rect.height <= 1 ||
                     rect.left < -1000 ||
                     rect.top < -1000
                 );
 
-                if (isHidden && src && src.startsWith('http')) {
+                if (!isHidden) {
+                    continue;
+                }
+
+                // Only flag hidden frames with genuine threat indicators (IP host, high-abuse TLD, or credential path)
+                const isRawIp = /^(\d{1,3}\.){3}\d{1,3}$/.test(srcHost);
+                const hasSuspiciousTld = SUSPICIOUS_IFRAME_TLDS.some(tld => srcHost.endsWith(tld));
+                const hasCredentialPath = CREDENTIAL_URL_PATTERNS.some(rx => rx.test(srcUrl.pathname));
+
+                if (isRawIp || hasSuspiciousTld || hasCredentialPath) {
                     result.hasHiddenIframes = true;
                     result.suspiciousIframes.push({
                         src: src,
-                        reason: 'Hidden iframe with external source'
+                        host: srcHost,
+                        reason: isRawIp ? 'Hidden iframe on raw IP' : (hasCredentialPath ? 'Hidden credential form iframe' : 'Hidden iframe on suspicious TLD')
                     });
-
                     result.risks.push({
                         type: 'HIDDEN_IFRAME',
                         severity: 'MEDIUM',
-                        message: `Hidden iframe loading: ${new URL(src).hostname}`
+                        message: `Suspicious hidden iframe loading: ${srcHost}`
                     });
                 }
             }
@@ -358,11 +483,12 @@ const DOMAnalyzer = (function () {
      * Perform comprehensive DOM analysis
      * @param {Document} doc - Document to analyze
      * @param {string} pageUrl - Current page URL
+     * @param {Object} [options] - Options
      * @returns {Object} Complete analysis result
      */
-    function analyze(doc, pageUrl) {
+    function analyze(doc, pageUrl, options = {}) {
         const formAnalysis = analyzeFormActions(doc, pageUrl);
-        const iframeAnalysis = detectHiddenIframes(doc);
+        const iframeAnalysis = detectHiddenIframes(doc, pageUrl, options);
         const bibAnalysis = detectBrowserInBrowser(doc);
         const credentialAnalysis = detectCredentialFields(doc);
         const faviconAnalysis = detectFaviconSpoofing(doc, pageUrl);
@@ -406,6 +532,7 @@ const DOMAnalyzer = (function () {
             // Quick flags
             hasSuspiciousForms: formAnalysis.hasSuspiciousForms,
             hasHiddenIframes: iframeAnalysis.hasHiddenIframes,
+            hasClickjackingOverlay: iframeAnalysis.hasClickjackingOverlay,
             hasBrowserInBrowserPatterns: bibAnalysis.hasBiBPatterns,
             hasCredentialFields: credentialAnalysis.hasPasswordField,
             hasFaviconSpoof: faviconAnalysis.isSpoofed,
@@ -434,15 +561,27 @@ const DOMAnalyzer = (function () {
             });
         }
 
-        if (domResult.hasHiddenIframes) {
+        if (domResult.hasClickjackingOverlay) {
+            specs.push({
+                id: 'dom.clickjacking_overlay',
+                source: 'dom-analyzer',
+                category: 'content',
+                polarity: 'negative',
+                weight: -30,
+                confidence: 'high',
+                detail: '[X] Transparent clickjacking overlay detected'
+            });
+        }
+
+        if (domResult.hasHiddenIframes && !domResult.hasClickjackingOverlay) {
             specs.push({
                 id: 'dom.hidden_iframe',
                 source: 'dom-analyzer',
-                category: 'structural',
+                category: 'content',
                 polarity: 'negative',
-                weight: -20,
-                confidence: 'medium',
-                detail: '[!] Hidden iframe detected loading external content'
+                weight: -8,
+                confidence: 'low',
+                detail: '[!] Suspicious hidden iframe loading untrusted external source'
             });
         }
 

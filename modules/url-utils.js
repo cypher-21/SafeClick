@@ -450,6 +450,30 @@ const UrlUtils = (function () {
     }
 
     /**
+     * Check if a URL or host belongs to a legitimate search engine.
+     * Prevents search result clicks from being falsely treated as open-redirect or unauthorized navigation.
+     */
+    function isSearchEngineDomain(urlOrHost) {
+        try {
+            if (!urlOrHost) return false;
+            let host = '';
+            if (/^https?:\/\//i.test(urlOrHost)) {
+                host = new URL(urlOrHost).hostname.toLowerCase();
+            } else {
+                host = String(urlOrHost).toLowerCase().split('/')[0].split(':')[0].trim();
+            }
+            if (!host) return false;
+            // Major global and regional search engines
+            if (/^(www\.)?google\.[a-z]{2,3}(\.[a-z]{2})?$/i.test(host)) return true;
+            if (/^(www\.)?(bing|duckduckgo|ecosia|startpage|qwant|baidu|yandex)\.(com|org|ru|net)$/i.test(host)) return true;
+            if (host.includes('search.yahoo.') || host.includes('search.brave.') || host.includes('search.aol.')) return true;
+            return false;
+        } catch (_) {
+            return false;
+        }
+    }
+
+    /**
      * Check if a URL or host belongs to a multi-tenant public platform
      * (e.g. github.com, drive.google.com, vercel.app).
      * These platforms must NEVER have their base domain or hostname blocked.
@@ -644,6 +668,7 @@ const UrlUtils = (function () {
         isKnownSafeDestination,
         isMultiTenantPlatform,
         hasOpenRedirectParam,
+        isSearchEngineDomain,
         
         // Comprehensive analysis
         analyzeUrl,

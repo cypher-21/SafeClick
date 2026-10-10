@@ -256,7 +256,7 @@ const SafeClickConfig = {
   UI: {
     // Default settings for new users
     defaultSettings: {
-      protectionEnabled: true,
+      protectionEnabled: false,
       autoWhitelist: false
     },
     // Show a small toast when a redirect is allowed

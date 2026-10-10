@@ -16,7 +16,7 @@ const Orchestrator = (function () {
   let aiAdvisor = null;
   let aiRegistry = null;
   let geminiProvider = null;
-  let currentSettings = { protectionEnabled: true, aiEnabled: false };
+  let currentSettings = { protectionEnabled: false, aiEnabled: false };
 
   function init({ scorer, rep, phish, feeds, aiAdvisor: advisor, aiRegistry: registry, geminiAI: gemini }) {
     trustScorer = scorer;

@@ -487,16 +487,27 @@ class TrustScorer {
             detail: '[!] Credential form submits to an external domain'
           }));
         }
-        if (domAnalysis.hasHiddenIframes) {
+        if (domAnalysis.hasClickjackingOverlay) {
+          registry.add(new Indicator({
+            id: 'dom.clickjacking_overlay',
+            source: 'dom-analyzer',
+            category: 'content',
+            polarity: 'negative',
+            weight: -30,
+            confidence: 'high',
+            value: true,
+            detail: '[X] Transparent clickjacking overlay detected'
+          }));
+        } else if (domAnalysis.hasHiddenIframes) {
           registry.add(new Indicator({
             id: 'dom.hidden_iframe',
             source: 'dom-analyzer',
             category: 'content',
             polarity: 'negative',
-            weight: -15,
-            confidence: 'medium',
+            weight: -8,
+            confidence: 'low',
             value: true,
-            detail: '[!] Hidden iframe with external source detected'
+            detail: '[!] Suspicious hidden iframe with untrusted source detected'
           }));
         }
         if (domAnalysis.hasBrowserInBrowserPatterns) {

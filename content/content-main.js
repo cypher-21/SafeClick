@@ -10,14 +10,14 @@
   'use strict';
 
   let currentTrustScore = null;
-  let protectionEnabled = true;
+  let protectionEnabled = false;
   let autoModalEvaluated = false;
   let scoreRetryTimer = null;
   let scoreRetryAttempts = 0;
   const MAX_SCORE_RETRIES = 5;
 
   let settings = {
-    protectionEnabled: true,
+    protectionEnabled: false,
     scoreThreshold: 50,
     passwordStrengthEnabled: true,
     cookieAnalysisEnabled: true,
@@ -65,12 +65,35 @@
   function loadAllowlistsCache() {
     try {
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-        chrome.storage.local.get(['domainAllowlist', 'whitelist'], (res) => {
+        chrome.storage.local.get(['domainAllowlist', 'whitelist', 'settings'], (res) => {
           cachedDomainAllowlist = Array.isArray(res?.domainAllowlist) ? res.domainAllowlist : [];
           cachedWhitelist = Array.isArray(res?.whitelist) ? res.whitelist : [];
+          if (res?.settings && typeof res.settings === 'object') {
+            settings = { ...settings, ...res.settings };
+            protectionEnabled = !!settings.protectionEnabled;
+          }
         });
+
+        if (chrome.storage.onChanged && !chrome.storage.onChanged.hasListener(onStorageChanged)) {
+          chrome.storage.onChanged.addListener(onStorageChanged);
+        }
       }
     } catch (_) {}
+  }
+
+  function onStorageChanged(changes, area) {
+    if (area === 'local') {
+      if (changes.settings && changes.settings.newValue) {
+        settings = { ...settings, ...changes.settings.newValue };
+        protectionEnabled = !!settings.protectionEnabled;
+      }
+      if (changes.domainAllowlist) {
+        cachedDomainAllowlist = Array.isArray(changes.domainAllowlist.newValue) ? changes.domainAllowlist.newValue : [];
+      }
+      if (changes.whitelist) {
+        cachedWhitelist = Array.isArray(changes.whitelist.newValue) ? changes.whitelist.newValue : [];
+      }
+    }
   }
 
   function hostMatchesAllowlist(host, list) {
@@ -118,7 +141,7 @@
     if (SafeClickModalUI.justDismissedModal()) return;
     autoModalEvaluated = true;
 
-    if (isAllowedOrSuppressed()) return;
+    if (!protectionEnabled || isAllowedOrSuppressed()) return;
     const score = currentTrustScore;
     if (!score) return;
 
@@ -235,7 +258,7 @@
           if (f.src && new URL(f.src).hostname !== pageHost) externalFrames++;
         } catch (_) {}
       });
-      if (externalFrames > 3 && currentTrustScore?.verdict !== 'SAFE') {
+      if (externalFrames > 5 && (currentTrustScore?.verdict === 'DANGEROUS' || currentTrustScore?.verdict === 'SUSPICIOUS') && protectionEnabled) {
         SafeClickModalUI.showNotification(`Privacy Notice: ${externalFrames} third-party frames detected`, 'info', 5000);
       }
     } catch (_) {}
